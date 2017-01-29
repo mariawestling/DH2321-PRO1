@@ -476,10 +476,10 @@
 	function secondButtonsClear() {
 		d3.select('#interests')
 			.selectAll('.btn', function() {
-				d3.selectAll('.btn').classed('live', true);
+				d3.selectAll('.btn').classed('active', true);
 
 				var button = d3.select(this);
-				button.classed('live', false);
+				button.classed('active', false);
 			})
 	}
 
@@ -488,12 +488,12 @@
 		d3.select('#interest')
 			.selectAll('.btn-secondary')
 			.on('click', function() {
-				d3.selectAll('.btn-secondary').classed('live', false);
+				d3.selectAll('.btn-secondary').classed('active', false);
 				console.log("click");
 				var button = d3.select(this);
 				console.log("button", button);
 
-				button.classed('live', true);
+				button.classed('active', true);
 
 				var buttonId = button.attr('id');
 				console.log("buttonID", buttonId);
