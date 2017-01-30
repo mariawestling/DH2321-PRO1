@@ -1,22 +1,24 @@
+	
 	var areas = ['ux', 'prog', 'stats', 'math', 'graphics', 'hci', 'ivis', 'art', 'learn'];
 	var interests = ['music', 'books', 'games', 'sports', 'cooking', 'programming', 'creative', 'photography', 'society'];
-
+	var group = [];
 	function bubbleChart() {
 		// the viz area
 		var width = 800;
-		var height = 500;
+		var height = 600;
 		//console.log("bubbleChart func", height);
+		var clickCount = 0;
 
 		//mouseover
 		var tooltip = floatingTooltip('gates_tooltip', 240);
 
 		// locations to move bubbles towards, depending on what mode is selected
-		var center = {x: width/2, y: height/2};
+		var center = {x: width/2, y: height/2.6};
 		//console.log("center", center);
 		var skillCenters = {
-			"low": {x: width/3.9, y: height/2},
-			"medium": {x: width/2, y: height/2},
-			"high": {x: 2.3*width/3, y: height/2}
+			"low": {x: width/3.9, y: height/2.6},
+			"medium": {x: width/2, y: height/2.6},
+			"high": {x: 2.3*width/3, y: height/2.6}
 		};
 
 		// x location of the skill level titles
@@ -48,6 +50,14 @@
 
 		simulation.stop(); // if one wants to hold off the simulation before creating more nodes
 
+		var oneSimulation = d3.forceSimulation()
+			.velocityDecay(0.2)
+			.force('center', d3.forceCenter(width / 2, height / 1.2))
+			.force('y', d3.forceY().strength(forceStrength).y(center.y))
+			.force('charge', d3.forceManyBody().strength(charge))
+			//.on('tick', ticked);
+
+
 		var fillColor = d3.scaleLinear()
 			.domain([1, 9])
 			.interpolate(d3.interpolateHcl)
@@ -69,6 +79,8 @@
 			return myNodes;
 
 		}
+
+
 
 		function pumpNodes(rawData) {
 			var newNodes = rawData.map(function (d) {
@@ -118,7 +130,8 @@
 					photography: parseInt(d.Photography),
 					society: parseInt(d.Society),
 					x: Math.random() * 900,
-					y: Math.random() * 800
+					y: Math.random() * 800,
+					group: false
 				}
 			});
 
@@ -126,6 +139,7 @@
 			newNodes.sort(function (a, b) { return b.value - a.value;});
 			//console.log("myNodes", newNodes);
 			return newNodes;
+
 		}
 
 		function resetColors () {
@@ -161,7 +175,6 @@
 					// }
 				}
 			}
-
 
 		}
 
@@ -289,8 +302,8 @@
 				.attr('stroke-width', 2)
 				.attr('id', function(d) {return 'id'+d.id;}) //assign unique id to each bubble
 				.on('mouseover', showDetail)
-				.on('mouseout', hideDetail);
-				//.on('click', selectToGroup); select node to group
+				.on('mouseout', hideDetail)
+				.on('click', moveToGroup); //select node to group
 				
 
 			//console.log("bubblesE", bubblesE);
@@ -362,6 +375,7 @@
 			//reset x force to draw bubbles to skill centers
 			simulation.force('x', d3.forceX().strength(forceStrength).x(nodeSkillPos));
 
+
 			//reset alpha value and restart sim
 			simulation.alpha(1).restart();
 		}
@@ -398,8 +412,11 @@
 			//d3.select(this).attr('stroke', 'black');
 			//console.log("mouseover");
 			//console.log("mouseover d", d);
-			d3.select(this)
-				.attr('fill', '#FFB300')
+			if(d.group === false){
+				d3.select(this)
+					.attr('fill', '#FFB300')
+			}
+
 			var content = '<span class="name">Name: </span><span class="value">' + d.name
 			+'</span><br/>'
 			+'<span class="name">Interests and hobbies: </span><br/><span class="value">$'
@@ -411,18 +428,101 @@
 
 		//called on mouseover to hide additional details
 		function hideDetail (d) {
+			if (d.group === false){
 			d3.select(this)
 				.attr('fill', function (d) { return fillColor(d.value); })
 				.attr('stroke', function (d) { return d3.rgb(fillColor(d.value)).darker(); })
 				.attr('stroke-width', 2) //gives back the original color
-
-				console.log("switch back", this);
-
+			}
 			tooltip.hideTooltip();
 		}
 
+		var groupCenters = {
+			true: {x: width/2, y: height/1.35},
+			false: {x: width/2, y: height/2.6}
+		};
+
+		function nodeGroupPos(d){
+			//console.log("nodeGroupPos", d);
+			var key = Object.keys(d)[26];		
+			return groupCenters[d[key]].y;
+		};
+
+		var groupColors = d3.scaleLinear()
+			.domain([1, 9])
+			.interpolate(d3.interpolateHcl)
+			.range(['#BCAAA4', '#FF8A65', '#00838F']);
+
+		function moveToGroup(d) {
+
+			var count = group.length;
+			console.log("count", count);
+			console.log("group", group);
+			 
+			if (d.group === false && count < 8){
+				group.push(d.id);
+				console.log("group in if", group);
+				d.group = true;
+				console.log(this);
+				var value = Math.floor(Math.random()*20)+5;
+				console.log(value);
+				d3.select(this)
+					.attr('fill', function (d) { return groupColors(value);})
+					.attr('stroke', function (d) { return d3.rgb(groupColors(value)).darker(); })
+					.attr('stroke-width', 2)
+			}
+			else {
+				d.group = false;
+				console.log("in else");
+				for (i=0; i < group.length; i++) {
+					console.log("groupiii", group[i]);
+					if(group[i] === d.id){
+						console.log("in if in else");
+						var index = group.indexOf(d.id);
+						console.log("index", index);
+						group.splice(index, 1);
+					}
+				}
+			}	
+
+			simulation.force('y', d3.forceY().strength(forceStrength).y(nodeGroupPos));
+			simulation.alpha(1).restart();
+			//console.log("d", d.group);
+			//console.log("this", this);
+			//console.log("sim", simulation);
+			//oneSimulation.force('y', d3.forceY().strength(forceStrength).y(height/3.9));
+			//reset alpha value and restart sim
+			//oneSimulation.alpha(1).restart();
+			/*if (this.id in group){
+
+			} else {
+
+			var positions = [{x: 30, y: 530}, {x:150, y: 530},{x: 250, y: 530},{x: 350, y: 530},{x: 450, y: 530},{x: 550, y: 530},{x: 650, y: 530},{x: 770, y: 530},]
+
+			var count = group.length;
+			console.log("count", count);
+			var newPos;
+				if (count < 9) {
+					if (count === 0) {
+
+						newPos = positions[0];
+						console.log("nEWPOS", newPos);
+
+
+					d3.select(this)
+						.attr('cx', newPos.x)
+						.attr('cy', newPos.y);
+
+					group.push(this.id);
+					console.log("group list", group);
+				}
+			}
+			console.log("this", this.id);*/
+
+
+		}
+
 		function showExplanation (d) {
-			console.log("showExplanation", d);
 			var text = '<span class="explanation"> Low, medium and high indicates on what level you are in relation to the class, ie. to be in the group "high" you dont necessarily have to be an expert, but you are among the best in the class in this specific area.</span>';
 
 			tooltip.showTooltip(text, d3.event);
@@ -451,7 +551,6 @@
 				splitBubbles(displayName);
 				//console.log("dispName", displayName);
 			} else if (isInList(interests, displayName) === true) {
-				console.log("inListInterest");
 				updateNodes(displayName);
 			} else if (displayName === 'noInt') {
 				resetColors();
@@ -484,21 +583,15 @@
 	}
 
 	function setupInterestButtons() {
-		console.log("setupInterestButtons");
 		d3.select('#interest')
 			.selectAll('.btn-secondary')
 			.on('click', function() {
 				d3.selectAll('.btn-secondary').classed('active', false);
-				console.log("click");
 				var button = d3.select(this);
-				console.log("button", button);
 
 				button.classed('active', true);
 
 				var buttonId = button.attr('id');
-				console.log("buttonID", buttonId);
-
-
 
 				myBubbleChart.toggleDisplay(buttonId);
 			})
@@ -506,7 +599,6 @@
 
 	//sets up the layout buttons to allow for toggling between view modes
 	function setupButtons() {
-		console.log("setupButtons()");
 		setupInterestButtons();
 		d3.select('#toolbar')
 			.selectAll('.btn-primary')
@@ -515,7 +607,6 @@
 				d3.selectAll('.btn-primary').classed('active', false);
 				//find the button just clicked
 				var button = d3.select(this);
-				console.log("button", button);
 
 				//set it as the active button
 				button.classed('active', true);
