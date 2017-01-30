@@ -89,6 +89,7 @@
 
 			function rad () {
 					count = (parseInt(d.IVIS)+parseInt(d.Stats)+parseInt(d.Maths)+parseInt(d.Art)+parseInt(d.Learn)+parseInt(d.Prog)+parseInt(d.Graphics)+parseInt(d.HCI)+parseInt(d.UX))/9;
+					console.log("COUNT", count);
 					return count;
 			}
 
@@ -110,7 +111,7 @@
 					value: value,
 					overall: overall,
 					name: d.Alias, 
-					interests: null,
+					interests: d.interests,
 					ivis: ivis,
 					stats: stats,
 					math: math,
@@ -278,7 +279,7 @@
 		var chart = function chart(selector, rawData) {
 			//convert raw data into nodes data
 			nodes = createNodes(rawData);
-			//console.log("chart nodes", nodes);
+			console.log("chart nodes", nodes);
 
 			//create SVG element inside provided selector with desired size
 			svg = d3.select(selector)
@@ -419,7 +420,8 @@
 
 			var content = '<span class="name">Name: </span><span class="value">' + d.name
 			+'</span><br/>'
-			+'<span class="name">Interests and hobbies: </span><br/><span class="value">$'
+			+'<span class="name">Interests and hobbies: <br/>' +d.interests
+			+' </span><br/><span class="value">'
 			+'</span><br/>';
 
 			//console.log("content",content)
@@ -487,38 +489,6 @@
 
 			simulation.force('y', d3.forceY().strength(forceStrength).y(nodeGroupPos));
 			simulation.alpha(1).restart();
-			//console.log("d", d.group);
-			//console.log("this", this);
-			//console.log("sim", simulation);
-			//oneSimulation.force('y', d3.forceY().strength(forceStrength).y(height/3.9));
-			//reset alpha value and restart sim
-			//oneSimulation.alpha(1).restart();
-			/*if (this.id in group){
-
-			} else {
-
-			var positions = [{x: 30, y: 530}, {x:150, y: 530},{x: 250, y: 530},{x: 350, y: 530},{x: 450, y: 530},{x: 550, y: 530},{x: 650, y: 530},{x: 770, y: 530},]
-
-			var count = group.length;
-			console.log("count", count);
-			var newPos;
-				if (count < 9) {
-					if (count === 0) {
-
-						newPos = positions[0];
-						console.log("nEWPOS", newPos);
-
-
-					d3.select(this)
-						.attr('cx', newPos.x)
-						.attr('cy', newPos.y);
-
-					group.push(this.id);
-					console.log("group list", group);
-				}
-			}
-			console.log("this", this.id);*/
-
 
 		}
 
