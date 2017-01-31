@@ -440,7 +440,7 @@
 		}
 
 		var groupCenters = {
-			true: {x: width/2, y: height/1.35},
+			true: {x: width/2, y: height/1.37},
 			false: {x: width/2, y: height/2.6}
 		};
 
